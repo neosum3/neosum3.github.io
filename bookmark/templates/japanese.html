@@ -1,0 +1,270 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    日文学习
+{% endblock %}
+
+{% block main %}
+    <script>
+        (function(W){
+            var sets = []; //object to put in everything
+            var JP_form = 0;
+            var count = 1;
+            function init(){
+
+                var temp = W.document.getElementById('JP_form');
+                console.log(temp);
+                sets.push({
+                    form : temp,
+                    bts : temp.getElementsByTagName('button'),
+                    ipt : temp.getElementsByTagName('input'),
+                    prev : []
+                });
+                                console.log(sets);
+
+                sets[0].form.addEventListener('submit',save, false);
+                sets[0].bts[1].addEventListener('click',cancel, false);
+                sets[0].bts[2].addEventListener('click',edit,false);
+
+                W.document.getElementById('JP_note').innerHTML="{{info['note']}}";
+                sets[JP_form].ipt[0].value="{{info['note']}}";
+
+
+                console.log(sets);
+                getWidth();
+
+                var JP_word_form = W.document.getElementById('JP_word_form'); //console.log(JP_word_form);
+                JP_word_form.addEventListener('submit',word_play, false);
+                var JP_text_form = W.document.getElementById('JP_text_form');
+                JP_text_form.addEventListener('submit',text_play, false);
+
+            }
+            function addLink(url, thing){
+                if(url == "") return thing; //no link input = do nothing
+                return "<a href=" + url + ">" + thing + "</a> ";
+            }
+            function save(e){
+                event.preventDefault();
+                var id;
+                if(this.id == "JP_form") {
+                    id = JP_form;
+
+                    $.getJSON("/japanese",  {
+                        JP_note: $("#JP_note").val(),
+
+                    }, function(data, textStatus, jqXHR) {console.log(data);});
+
+                }
+                sets[id].form.classList.remove('invert');
+                var l=sets[id].ipt.length;
+                while(l--){
+                    sets[id].ipt[l].readOnly=true;
+                };
+                for (var i = 0; i < count; i++) sets[i].previous = [];
+            }
+            function edit(e){
+                e.preventDefault();
+                var id;
+                console.log(this);
+                if(this.id == "JP_edit") {
+                    id = JP_form;
+                }
+                sets[id].form.classList.add('invert');
+                var l=sets[id].ipt.length;
+                while(l--){   //if (l = i - 1) is bigger than 0
+                    sets[id].prev[l]=sets[id].ipt[l].value;
+                    sets[id].ipt[l].readOnly=false;
+                }
+                getWidth();
+            }
+            function cancel(e){
+                e.preventDefault();
+                var id;
+                console.log(this);
+                if(this.id == "JP_cancel") {
+                    id = JP_form;
+                    //var strings = ['CN_guild1_box', 'CN_guild1', 'CN_guild1_link', 'CN_guild2_box', 'CN_guild2', 'CN_guild2_link', 'CN_weekly_box', 'CN_weekly', 'CN_weekly_link'];
+                    //removeInvert(strings); //display and hide textbox or input
+                }
+                sets[id].form.classList.remove('invert');
+                var l=sets[id].ipt.length;
+                while(l--){
+                    sets[id].ipt[l].value=sets[id].prev[l];
+                    sets[id].ipt[l].readOnly=true;
+                }
+                getWidth();
+            }
+            function addInvert(strings){ //Hide/disply textbox in edit/cancel mode
+                for (var i = 0; i < strings.length; i++) W.document.getElementById(strings[i]).classList.add('invert');
+            }
+            function removeInvert(strings){ //Hide/disply textbox in edit/cancel mode
+                for (var i = 0; i < strings.length; i++) W.document.getElementById(strings[i]).classList.remove('invert');
+            }
+            W.addEventListener('load',init,false);
+
+
+            function word_play(e){
+                e.preventDefault();
+                var lesson = W.document.getElementById("word_lesson");
+                var lesson_value = lesson.options[lesson.selectedIndex].value;
+                //console.log(lesson_value);
+                switch (lesson_value){
+                    case "0":  W.document.getElementById('word_video').innerHTML="<br>"; break;
+                    case "26": W.document.getElementById('word_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/2GqSKw4WkKw' frameborder='0' allowfullscreen></iframe>";break;
+                    case "27": W.document.getElementById('word_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/QQkzuVNr0ro' frameborder='0' allowfullscreen></iframe>";break;
+                    case "28": W.document.getElementById('word_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/ooBnYKFTdZ0' frameborder='0' allowfullscreen></iframe>";break;
+                    case "29": W.document.getElementById('word_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/xEXnR5YVcos' frameborder='0' allowfullscreen></iframe>";break;
+                    case "30": W.document.getElementById('word_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/rWQtLsnUEk4' frameborder='0' allowfullscreen></iframe>";break;
+                }
+            }
+            function text_play(e){
+                e.preventDefault();
+                var lesson = W.document.getElementById("text_lesson");
+                var lesson_value = lesson.options[lesson.selectedIndex].value;
+                //console.log(lesson_value);
+                switch (lesson_value){
+                    case "0":  W.document.getElementById('text_video').innerHTML="<br>"; break;
+                    case "26": W.document.getElementById('text_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/j9_oBhGsRg4' frameborder='0' allowfullscreen></iframe>";break;
+                    case "27": W.document.getElementById('text_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/CHSIUqizwUY' frameborder='0' allowfullscreen></iframe>";break;
+                    case "28": W.document.getElementById('text_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/dpcLtoXEVCY' frameborder='0' allowfullscreen></iframe>";break;
+                    case "29": W.document.getElementById('text_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/l95TSwe_qQk' frameborder='0' allowfullscreen></iframe>";break;
+                    case "30": W.document.getElementById('text_video').innerHTML="<iframe width='420' height='345' src='https://www.youtube.com/embed/FZ4LIPxxENs' frameborder='0' allowfullscreen></iframe>";break;
+                }
+            }
+        })(window)  //It is a self-executing anonymous function. The first set of parentheses contain the expressions to be executed, and the second set of parentheses executes those expressions.
+
+        function isInt(value) { //checks whether input is int or 'int', see https://stackoverflow.com/questions/14636536/how-to-check-if-a-variable-is-an-integer-in-javascript
+            var x = parseFloat(value);
+            return !isNaN(value) && (x | 0) === x; //bitwise  check
+        }
+        function isPosInt(value){  //pos & 0
+            if(!isInt(value)) return false;
+            var x = parseInt(value);
+            if(x>=0) return true;
+            return false;
+        }
+        function is_url(str)  //check url is valid or not
+        {
+            var regexp =  /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
+            if (regexp.test(str)){
+              return true;
+            }
+            else{
+              return false;
+            }
+        }
+        function addhttp(url) {  //Make url start with http (if not will get error)
+            if (url=="") return url; //don't change empty url
+            if (!/^(f|ht)tps?:\/\//i.test(url)) {
+                url = "http://" + url;
+            }
+            return url;
+        }
+        function getWidth(){//***For auto adjust input box size********
+            $.fn.textWidth = function(text, font) {
+                if (!$.fn.textWidth.fakeEl) $.fn.textWidth.fakeEl = $('<span>').hide().appendTo(document.body);
+                $.fn.textWidth.fakeEl.text( this.val() || this.text() ).css('font', font || this.css('font'));
+                return $.fn.textWidth.fakeEl.width();
+            };
+            $('.width-dynamic').on('input', function() {
+                var inputWidth = $(this).textWidth() + 15;
+                $(this).css({
+                    width: inputWidth
+                })
+            }).trigger('input');
+            function inputWidth(elem, minW, maxW) {
+                elem = $(this) ;
+                console.log(elem)
+            }
+            var targetElem = $('.width-dynamic');
+            inputWidth(targetElem);
+        }
+    </script>
+
+    <style>
+        table, th, td {
+            border: 2px solid black;
+            border-top: 2px solid black;
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+        label{display:block;}
+        form input{border:none;outline:none;box-sizing:border-box;text-align: center; background-color: white; padding: 5px; min-width: 100px; max-width: 5000px;}
+        form.invert input{border:1px solid rgba(0,0,0,0.2);outline:none; padding: 5px; min-width: 100px; max-width: 5000px;}
+
+        form>button:nth-of-type(1){color:green;display:none; float: right;}
+        form>button:nth-of-type(2){color:red;display:none; float: right;}
+        form>button:nth-of-type(3){color:black;display:inline-block; float: right;}
+        form.invert>button:nth-of-type(1){display:inline-block;}
+        form.invert>button:nth-of-type(2){display:inline-block;}
+        form.invert>button:nth-of-type(3){display:none;}
+        #JP_word_sub, #JP_text_sub{display:inline;color:white; float: right;}
+
+
+    </style>
+
+    <b> 日文学习 </b>
+    <table class="table table-sm"  style="width:100%" border="1">
+        <tr>
+            <td width="50%">
+                <form id="JP_word_form">
+                    <b>大家的日本语-单词</b> <select id="word_lesson">
+                        <option value="0"> </option>
+                        <option value="26">26课</option>
+                        <option value="27">27课</option>
+                        <option value="28">28课</option>
+                        <option value="29">29课</option>
+                        <option value="30">30课</option>
+                    </select>
+                    <button class="btn btn-primary" id="JP_word_sub" type="submit">Play</button>
+                </form>
+                <div id=word_video> </div>
+            </td>
+            <td width="50%">
+                <form id="JP_text_form">
+                    <b>大家的日本语-文型</b> <select id="text_lesson">
+                        <option value="0"> </option>
+                        <option value="26">26课</option>
+                        <option value="27">27课</option>
+                        <option value="28">28课</option>
+                        <option value="29">29课</option>
+                        <option value="30">30课</option>
+                    </select>
+                    <button class="btn btn-primary" id="JP_text_sub" type="submit">Play</button>
+                </form>
+                <div id=text_video> </div>
+            </td>
+        </tr>
+        <tr>
+            <td width="50%">
+                <b> 大家的日本语-答案: </b>
+                <a href="http://robokon-answer.com/answer.html">Go!</ahef>
+            </td>
+            <td width="50%">
+                <b> 唱歌学日语: </b>
+                <a href="https://www.jpmarumaru.com/tw/JPSongFavorites.asp">Go!</ahef>
+
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+            <form id=JP_form>
+                <button id="JP_save">Save</button><button id="JP_cancel">Cancel</button><button id="JP_edit">Edit</button>
+                <input  readonly id="JP_note" type="text" class="width-dynamic proba dva" placeholder="备注"/>
+            </form>
+            </td>
+        </tr>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

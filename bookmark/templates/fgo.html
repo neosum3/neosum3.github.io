@@ -1,0 +1,369 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    FGO
+{% endblock %}
+
+{% block main %}
+    <script>
+        (function(W){
+            var sets = []; //object to put in everything
+            var CN_form = 0, US_form= 1;
+            var count;
+            function init(){
+                count = 2; //for CN and US
+                for (var i = 0; i < count; i++){
+                    var temp = W.document.getElementsByTagName('form')[i];
+                    //console.log(W.document.getElementsByTagName('form'));
+                    sets.push({
+                        form : temp,
+                        bts : temp.getElementsByTagName('button'),
+                        ipt : temp.getElementsByTagName('input'),
+                        prev : []
+                    });
+                    sets[i].form.addEventListener('submit',save, false);
+                    sets[i].bts[1].addEventListener('click',cancel, false);
+                    sets[i].bts[2].addEventListener('click',edit,false);
+                }
+                W.document.getElementById('CN_stone_total').innerHTML="{{CN_info['quartz']+3*CN_info['ticket']}}";
+                W.document.getElementById('CN_draw').innerHTML="{{(CN_info['quartz']+3*CN_info['ticket'])//3}}";
+                sets[CN_form].ipt[0].value="{{CN_info['act_time']}}";
+                sets[CN_form].ipt[1].value="{{CN_info['guild1']}}";
+                sets[CN_form].ipt[2].value="{{CN_info['guild1_link']}}";  //*
+                W.document.getElementById('CN_guild1_box').innerHTML = addLink("{{CN_info['guild1_link']}}" , "{{CN_info['guild1']}}");
+                sets[CN_form].ipt[3].value="{{CN_info['guild2']}}";
+                sets[CN_form].ipt[4].value="{{CN_info['guild2_link']}}";  //*
+                W.document.getElementById('CN_guild2_box').innerHTML = addLink("{{CN_info['guild2_link']}}" , "{{CN_info['guild2']}}");
+                sets[CN_form].ipt[5].value="{{CN_info['weekly']}}";
+                sets[CN_form].ipt[6].value="{{CN_info['weekly_link']}}";  //*
+                W.document.getElementById('CN_weekly_box').innerHTML = addLink("{{CN_info['weekly_link']}}" , "{{CN_info['weekly']}}");
+                sets[CN_form].ipt[7].value="{{CN_info['quartz']}}";   //*
+                sets[CN_form].ipt[8].value="{{CN_info['ticket']}}";   //*
+                sets[CN_form].ipt[9].value= "{{CN_info['note']}}";
+
+                W.document.getElementById('US_stone_total').innerHTML="{{US_info['quartz']+3*US_info['ticket']}}";
+                W.document.getElementById('US_draw').innerHTML="{{(US_info['quartz']+3*US_info['ticket'])//3}}";
+                sets[US_form].ipt[0].value="{{US_info['act_time']}}";
+                sets[US_form].ipt[1].value="{{US_info['guild1']}}";
+                sets[US_form].ipt[2].value="{{US_info['guild1_link']}}";  //*
+                W.document.getElementById('US_guild1_box').innerHTML = addLink("{{US_info['guild1_link']}}" , "{{US_info['guild1']}}");
+                sets[US_form].ipt[3].value="{{US_info['guild2']}}";
+                sets[US_form].ipt[4].value="{{US_info['guild2_link']}}";  //*
+                W.document.getElementById('US_guild2_box').innerHTML = addLink("{{US_info['guild2_link']}}" , "{{US_info['guild2']}}");
+                sets[US_form].ipt[5].value="{{US_info['weekly']}}";
+                sets[US_form].ipt[6].value="{{US_info['weekly_link']}}";  //*
+                W.document.getElementById('US_weekly_box').innerHTML = addLink("{{US_info['weekly_link']}}" , "{{US_info['weekly']}}");
+                sets[US_form].ipt[7].value="{{US_info['quartz']}}";   //*
+                sets[US_form].ipt[8].value="{{US_info['ticket']}}";   //*
+                sets[US_form].ipt[9].value= "{{US_info['note']}}";
+
+                console.log(sets);
+                getWidth();
+            }
+            function addLink(url, thing){
+                if(url == "") return thing; //no link input = do nothing
+                return "<a href=" + url + ">" + thing + "</a> ";
+            }
+            function save(e){
+                event.preventDefault();  //The default action of the event will not be triggered.For example, clicked anchors will not take the browser to a new URL.
+                //console.log(sets);//console.log(this); //console.log(this.id);
+                var id;
+                if(this.id == "CN_form") {
+                    id = CN_form;
+                    if( !isPosInt($("#CN_stone_data").val()) || !isPosInt($("#CN_ticket").val())){
+                        alert("Please input valid number"); //make sure input is integer>=0
+                        return false;
+                    }
+                    if( (!is_url($("#CN_guild1_link").val()) & $("#CN_guild1_link").val() != "") |
+                        (!is_url($("#CN_guild2_link").val()) & $("#CN_guild2_link").val() != "") |
+                        (!is_url($("#CN_weekly_link").val()) & $("#CN_weekly_link").val() != "")){
+                        alert("Please enter valid url"); //make sure input is integer>=0
+                        return false;
+                    }
+                    sets[id].ipt[2].value = addhttp($("#CN_guild1_link").val());
+                    sets[id].ipt[4].value = addhttp($("#CN_guild2_link").val());
+                    sets[id].ipt[6].value = addhttp($("#CN_weekly_link").val());
+                    sets[id].ipt[7].value = parseInt($("#CN_stone_data").val());  //display number as integeter, not 09 or 5.0, etc
+                    sets[id].ipt[8].value = parseInt($("#CN_ticket").val());
+                    $.getJSON("/fgo",  {
+                        CN_act_time: $("#CN_act_time").val(),
+                        CN_guild1: $("#CN_guild1").val(),
+                        CN_guild1_link: $("#CN_guild1_link").val(),
+                        CN_guild2: $("#CN_guild2").val(),
+                        CN_guild2_link: $("#CN_guild2_link").val(),
+                        CN_weekly: $("#CN_weekly").val(),
+                        CN_weekly_link: $("#CN_weekly_link").val(),
+                        CN_stone: $("#CN_stone_data").val(),
+                        CN_ticket: $("#CN_ticket").val(),
+                        CN_note: $("#CN_note").val()
+                    }, function(data, textStatus, jqXHR) {console.log(data);});
+
+                    W.document.getElementById('CN_guild1_box').innerHTML = addLink($("#CN_guild1_link").val() , $("#CN_guild1").val());
+                    W.document.getElementById('CN_guild2_box').innerHTML = addLink($("#CN_guild2_link").val() , $("#CN_guild2").val());
+                    W.document.getElementById('CN_weekly_box').innerHTML = addLink($("#CN_weekly_link").val() , $("#CN_weekly").val());
+                    W.document.getElementById('CN_stone_total').innerHTML=parseInt($("#CN_stone_data").val())+3*parseInt($("#CN_ticket").val());
+                    W.document.getElementById('CN_draw').innerHTML=Math.floor((parseInt($("#CN_stone_data").val())+3*parseInt($("#CN_ticket").val()))/3);
+
+                    var strings = ['CN_guild1_box', 'CN_guild1', 'CN_guild1_link', 'CN_guild2_box', 'CN_guild2', 'CN_guild2_link', 'CN_weekly_box', 'CN_weekly', 'CN_weekly_link'];
+                    removeInvert(strings); //display and hide textbox or input
+                }
+                else if(this.id == "US_form") {
+                    id = US_form;
+                    if( !isPosInt($("#US_stone_data").val()) || !isPosInt($("#US_ticket").val())){
+                        alert("Please input valid number"); //make sure input is integer>=0
+                        return false;
+                    }
+                    if( (!is_url($("#US_guild1_link").val()) & $("#US_guild1_link").val() != "") |
+                        (!is_url($("#US_guild2_link").val()) & $("#US_guild2_link").val() != "") |
+                        (!is_url($("#US_weekly_link").val()) & $("#US_weekly_link").val() != "")){
+                        alert("Please enter valid url"); //make sure input is integer>=0
+                        return false;
+                    }
+                    sets[id].ipt[2].value = addhttp($("#US_guild1_link").val());
+                    sets[id].ipt[4].value = addhttp($("#US_guild2_link").val());
+                    sets[id].ipt[6].value = addhttp($("#US_weekly_link").val());
+                    sets[id].ipt[7].value = parseInt($("#US_stone_data").val());  //display number as integeter, not 09 or 5.0, etc
+                    sets[id].ipt[8].value = parseInt($("#US_ticket").val());
+                    $.getJSON("/fgo",  {
+                        US_act_time: $("#US_act_time").val(),
+                        US_guild1: $("#US_guild1").val(),
+                        US_guild1_link: $("#US_guild1_link").val(),
+                        US_guild2: $("#US_guild2").val(),
+                        US_guild2_link: $("#US_guild2_link").val(),
+                        US_weekly: $("#US_weekly").val(),
+                        US_weekly_link: $("#US_weekly_link").val(),
+                        US_stone: $("#US_stone_data").val(),
+                        US_ticket: $("#US_ticket").val(),
+                        US_note: $("#US_note").val()
+                    }, function(data, textStatus, jqXHR) {console.log(data);});
+
+                    W.document.getElementById('US_guild1_box').innerHTML = addLink($("#US_guild1_link").val() , $("#US_guild1").val());
+                    W.document.getElementById('US_guild2_box').innerHTML = addLink($("#US_guild2_link").val() , $("#US_guild2").val());
+                    W.document.getElementById('US_weekly_box').innerHTML = addLink($("#US_weekly_link").val() , $("#US_weekly").val());
+                    W.document.getElementById('US_stone_total').innerHTML=parseInt($("#US_stone_data").val())+3*parseInt($("#US_ticket").val());
+                    W.document.getElementById('US_draw').innerHTML=Math.floor((parseInt($("#US_stone_data").val())+3*parseInt($("#US_ticket").val()))/3);
+
+                    var strings = ['US_guild1_box', 'US_guild1', 'US_guild1_link', 'US_guild2_box', 'US_guild2', 'US_guild2_link', 'US_weekly_box', 'US_weekly', 'US_weekly_link'];
+                    removeInvert(strings); //display and hide textbox or input
+                }
+                sets[id].form.classList.remove('invert');
+                var l=sets[id].ipt.length;
+                while(l--){
+                    sets[id].ipt[l].readOnly=true;
+                };
+                for (var i = 0; i < count; i++) sets[i].previous = [];
+            }
+            function edit(e){
+                e.preventDefault();
+                var id;
+                console.log(this);
+                if(this.id == "CN_edit") {
+                    id = CN_form;
+                    var strings = ['CN_guild1_box', 'CN_guild1', 'CN_guild1_link', 'CN_guild2_box', 'CN_guild2', 'CN_guild2_link', 'CN_weekly_box', 'CN_weekly', 'CN_weekly_link'];
+                    addInvert(strings); //display and hide textbox or input
+                }
+                else if(this.id == "US_edit") {
+                    id = US_form;
+                    var strings = ['US_guild1_box', 'US_guild1', 'US_guild1_link', 'US_guild2_box', 'US_guild2', 'US_guild2_link', 'US_weekly_box', 'US_weekly', 'US_weekly_link'];
+                    addInvert(strings); //display and hide textbox or input
+                }
+                sets[id].form.classList.add('invert');
+                var l=sets[id].ipt.length;
+                while(l--){   //if (l = i - 1) is bigger than 0
+                    sets[id].prev[l]=sets[id].ipt[l].value;
+                    sets[id].ipt[l].readOnly=false;
+                }
+                getWidth();
+            }
+            function cancel(e){
+                e.preventDefault();
+                var id;
+                console.log(this);
+                if(this.id == "CN_cancel") {
+                    id = CN_form;
+                    var strings = ['CN_guild1_box', 'CN_guild1', 'CN_guild1_link', 'CN_guild2_box', 'CN_guild2', 'CN_guild2_link', 'CN_weekly_box', 'CN_weekly', 'CN_weekly_link'];
+                    removeInvert(strings); //display and hide textbox or input
+                }
+                else if(this.id == "US_cancel") {
+                    id = US_form;
+                    var strings = ['US_guild1_box', 'US_guild1', 'US_guild1_link', 'US_guild2_box', 'US_guild2', 'US_guild2_link', 'US_weekly_box', 'US_weekly', 'US_weekly_link'];
+                    removeInvert(strings); //display and hide textbox or input
+                }
+                sets[id].form.classList.remove('invert');
+                var l=sets[id].ipt.length;
+                while(l--){
+                    sets[id].ipt[l].value=sets[id].prev[l];
+                    sets[id].ipt[l].readOnly=true;
+                }
+                getWidth();
+            }
+            function addInvert(strings){ //Hide/disply textbox in edit/cancel mode
+                for (var i = 0; i < strings.length; i++) W.document.getElementById(strings[i]).classList.add('invert');
+            }
+            function removeInvert(strings){ //Hide/disply textbox in edit/cancel mode
+                for (var i = 0; i < strings.length; i++) W.document.getElementById(strings[i]).classList.remove('invert');
+            }
+            W.addEventListener('load',init,false);
+        })(window)  //It is a self-executing anonymous function. The first set of parentheses contain the expressions to be executed, and the second set of parentheses executes those expressions.
+
+        function isInt(value) { //checks whether input is int or 'int', see https://stackoverflow.com/questions/14636536/how-to-check-if-a-variable-is-an-integer-in-javascript
+            var x = parseFloat(value);
+            return !isNaN(value) && (x | 0) === x; //bitwise  check
+        }
+        function isPosInt(value){  //pos & 0
+            if(!isInt(value)) return false;
+            var x = parseInt(value);
+            if(x>=0) return true;
+            return false;
+        }
+        function is_url(str)  //check url is valid or not
+        {
+            var regexp =  /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
+            if (regexp.test(str)){
+              return true;
+            }
+            else{
+              return false;
+            }
+        }
+        function addhttp(url) {  //Make url start with http (if not will get error)
+            if (url=="") return url; //don't change empty url
+            if (!/^(f|ht)tps?:\/\//i.test(url)) {
+                url = "http://" + url;
+            }
+            return url;
+        }
+        function getWidth(){//***For auto adjust input box size********
+            $.fn.textWidth = function(text, font) {
+                if (!$.fn.textWidth.fakeEl) $.fn.textWidth.fakeEl = $('<span>').hide().appendTo(document.body);
+                $.fn.textWidth.fakeEl.text( this.val() || this.text() ).css('font', font || this.css('font'));
+                return $.fn.textWidth.fakeEl.width();
+            };
+            $('.width-dynamic').on('input', function() {
+                var inputWidth = $(this).textWidth() + 15;
+                $(this).css({
+                    width: inputWidth
+                })
+            }).trigger('input');
+            function inputWidth(elem, minW, maxW) {
+                elem = $(this) ;
+                console.log(elem)
+            }
+            var targetElem = $('.width-dynamic');
+            inputWidth(targetElem);
+        }
+    </script>
+
+    <style>
+        table, th, td {
+            border: 2px solid black;
+            border-top: 2px solid black;
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+        label{display:block;}
+        form input{border:none;outline:none;box-sizing:border-box;text-align: center; background-color: white; padding: 5px; min-width: 10px; max-width: 5000px;}
+        form.invert input{border:1px solid rgba(0,0,0,0.2);outline:none; padding: 5px; min-width: 50px; max-width: 5000px;}
+        form>button:nth-of-type(1){color:green;display:none; float: right;}
+        form>button:nth-of-type(2){color:red;display:none; float: right;}
+        form>button:nth-of-type(3){color:black;display:inline-block; float: right;}
+        form.invert>button:nth-of-type(1){display:inline-block;}
+        form.invert>button:nth-of-type(2){display:inline-block;}
+        form.invert>button:nth-of-type(3){display:none;}
+        #CN_guild1_box.invert, #CN_guild2_box.invert, #CN_weekly_box.invert {text-align: center; display:none;}
+        #CN_guild1, #CN_guild1_link, #CN_guild2, #CN_guild2_link, #CN_weekly, #CN_weekly_link {display:none;}
+        #CN_guild1.invert, #CN_guild1_link.invert, #CN_guild2.invert, #CN_guild2_link.invert, #CN_weekly.invert, #CN_weekly_link.invert {display:inline; border:1px solid rgba(0,0,0,0.2);outline:none; padding: 5px; min-width: 50px; max-width: 5000px;}
+        #US_guild1_box.invert, #US_guild2_box.invert, #US_weekly_box.invert {text-align: center; display:none;}
+        #US_guild1, #US_guild1_link, #US_guild2, #US_guild2_link, #US_weekly, #US_weekly_link {display:none;}
+        #US_guild1.invert, #US_guild1_link.invert, #US_guild2.invert, #US_guild2_link.invert, #US_weekly.invert, #US_weekly_link.invert {display:inline; border:1px solid rgba(0,0,0,0.2);outline:none; padding: 5px; min-width: 50px; max-width: 5000px;}
+    </style>
+
+    <form id=CN_form>
+        <b> FGO 国服 </b>
+        <button>Save</button><button id="CN_cancel">Cancel</button><button id="CN_edit">Edit</button>
+        <table class="table table-sm"  style="width:100%" border="1">
+            <tr>
+                <th>活动时间： </th>
+                <td> <input readonly id="CN_act_time" type="text" class="width-dynamic proba dva"/> </a></td>
+            </tr>
+            <tr>
+                <th> 攻略1： </th>
+                <td> <text id="CN_guild1_box"> </text>
+                <input readonly id="CN_guild1" type="text" class="width-dynamic proba dva" placeholder="Title"/>
+                <input readonly id="CN_guild1_link" type="text" class="width-dynamic proba dva" placeholder="Link"/> </a></td>
+            </tr>
+            <tr>
+                <th> 攻略2： </th>
+                <td> <text id="CN_guild2_box"> </text>
+                <input readonly id="CN_guild2" type="text" class="width-dynamic proba dva" placeholder="Title"/>
+                <input readonly id="CN_guild2_link" type="text" class="width-dynamic proba dva" placeholder="Link"/> </a></td>
+            </tr>
+            <tr>
+                <th> 周回： </th>
+                <td> <text id="CN_weekly_box"> </text>
+                <input readonly id="CN_weekly" type="text" class="width-dynamic proba dva" placeholder="Title"/>
+                <input readonly id="CN_weekly_link" type="text" class="width-dynamic proba dva" placeholder="Link"/> </a></td>
+            </tr>
+            <tr>
+                <th> 石头： </th>
+                <td>
+                 圣晶石: <input readonly id="CN_stone_data" type="text" class="width-dynamic proba dva"/>,
+                         呼符：<input readonly id="CN_ticket" type="text" class="width-dynamic proba dva"/>
+                         （共<text id="CN_stone_total"> </text>石头，可抽<text id="CN_draw"> </text>次）
+                </td>
+            </tr>
+            <tr>
+                <th> 备注： </th>
+                <td>
+                    <input  readonly id="CN_note" type="text" class="width-dynamic proba dva"/>
+                </td>
+            </tr>
+        </table>
+     </form>
+
+    <br>
+
+    <form id=US_form>
+        <b> FGO 美服 </b>
+        <button>Save</button><button id="US_cancel">Cancel</button><button id="US_edit">Edit</button>
+        <table class="table table-sm"  style="width:100%" border="1">
+            <tr>
+                <th>活动时间： </th>
+                <td> <input readonly id="US_act_time" type="text" class="width-dynamic proba dva"/> </a></td>
+            </tr>
+            <tr>
+                <th> 攻略1： </th>
+                <td> <text id="US_guild1_box"> </text>
+                <input readonly id="US_guild1" type="text" class="width-dynamic proba dva" placeholder="Title"/>
+                <input readonly id="US_guild1_link" type="text" class="width-dynamic proba dva" placeholder="Link"/> </a></td>
+            </tr>
+            <tr>
+                <th> 攻略2： </th>
+                <td> <text id="US_guild2_box"> </text>
+                <input readonly id="US_guild2" type="text" class="width-dynamic proba dva" placeholder="Title"/>
+                <input readonly id="US_guild2_link" type="text" class="width-dynamic proba dva" placeholder="Link"/> </a></td>
+            </tr>
+            <tr>
+                <th> 周回： </th>
+                <td> <text id="US_weekly_box"> </text>
+                <input readonly id="US_weekly" type="text" class="width-dynamic proba dva" placeholder="Title"/>
+                <input readonly id="US_weekly_link" type="text" class="width-dynamic proba dva" placeholder="Link"/> </a></td>
+            </tr>
+            <tr>
+                <th> 石头： </th>
+                <td>
+                 圣晶石: <input readonly id="US_stone_data" type="text" class="width-dynamic proba dva"/>,
+                         呼符：<input readonly id="US_ticket" type="text" class="width-dynamic proba dva"/>
+                         （共<text id="US_stone_total"> </text>石头，可抽<text id="US_draw"> </text>次）
+                </td>
+            </tr>
+            <tr>
+                <th> 备注： </th>
+                <td>
+                    <input  readonly id="US_note" type="text" class="width-dynamic proba dva"/>
+                </td>
+            </tr>
+        </table>
+     </form>
+
+{% endblock %}

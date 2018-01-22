@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block main %}
+    <form action="/login" id="login" method="post">
+        <div class="form-group">
+            <input autocomplete="on" autofocus class="form-control" name="username" placeholder="Username" type="text"/>
+        </div>
+        <div class="form-group">
+            <input autocomplete="on" class="form-control" name="password" placeholder="Password" type="password"/>
+        </div>
+        <button class="btn btn-primary" type="submit">Log In</button>
+    </form>
+    <script>
+        let form = document.getElementById("login");
+        form.onsubmit = function() {
+            if (!form.username.value){
+                alert("missing username");
+                return false;
+            }
+            if (!form.password.value){
+                alert("missing password");
+                return false;
+            }
+            return true;
+        };
+    </script>
+{% endblock %}
