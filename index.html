@@ -55,13 +55,13 @@
             </div>
         </nav>
 
-        {% if get_flashed_messages() %}
+
             <header>
                 <div class="alert alert-primary border text-center" role="alert">
                     {{ get_flashed_messages() | join(" ") }}
                 </div>
             </header>
-        {% endif %}
+
 
         <main class="container p-5">
                 <script>
@@ -84,9 +84,6 @@
                 sets[0].form.addEventListener('submit',save, false);
                 sets[0].bts[1].addEventListener('click',cancel, false);
                 sets[0].bts[2].addEventListener('click',edit,false);
-
-                W.document.getElementById('JP_note').innerHTML="{{info['note']}}";
-                sets[JP_form].ipt[0].value="{{info['note']}}";
 
 
                 console.log(sets);
